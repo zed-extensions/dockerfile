@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, path::PathBuf};
 use zed_extension_api::{self as zed, Result};
 
 const SERVER_PATH: &str = "node_modules/dockerfile-language-server-nodejs/bin/docker-langserver";
@@ -67,14 +67,24 @@ impl zed::Extension for DockerfileExtension {
         _worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
         let server_path = self.server_script_path(config)?;
+        let (os, _) = zed::current_platform();
+        let current_dir: PathBuf = match os {
+            zed_extension_api::Os::Linux | zed_extension_api::Os::Mac => {
+                env::current_dir().unwrap()
+            }
+            zed_extension_api::Os::Windows => {
+                let dir_string = env::current_dir().unwrap().to_string_lossy().to_string();
+                if let Some(result) = dir_string.strip_prefix('/') {
+                    result.into()
+                } else {
+                    dir_string.into()
+                }
+            }
+        };
         Ok(zed::Command {
             command: zed::node_binary_path()?,
             args: vec![
-                env::current_dir()
-                    .unwrap()
-                    .join(&server_path)
-                    .to_string_lossy()
-                    .to_string(),
+                current_dir.join(&server_path).to_string_lossy().to_string(),
                 "--stdio".to_string(),
             ],
             env: Default::default(),
