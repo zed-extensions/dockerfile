@@ -1,0 +1,8 @@
+{
+  "languages": {
+    "TOML": {
+      "preferred_line_length": 100,
+      "formatter": "prettier"
+    }
+  }
+}
