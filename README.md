@@ -1,9 +1,11 @@
-# Dockerfile
+# Dockerfile Zed Extension
 
 - Tree Sitter: [tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile)
 - Language Server: [dockerfile-language-server](https://github.com/rcjsuen/dockerfile-language-server)
 
-Now zed support match [glob](https://github.com/zed-industries/zed/pull/12043). ex:
+## Configuration
+
+To support matching filenames other than `Dockerfile` you can add [`file_types`](https://zed.dev/docs/configuring-zed#file-types) to your Zed project or user settings:
 
 ```json
 {
@@ -12,5 +14,3 @@ Now zed support match [glob](https://github.com/zed-industries/zed/pull/12043). 
   }
 }
 ```
-
-Prev PR: https://github.com/zed-industries/zed/pull/7977 & https://github.com/zed-industries/zed/issues/6905
