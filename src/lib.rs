@@ -13,14 +13,14 @@ impl DockerfileExtension {
         fs::metadata(SERVER_PATH).map_or(false, |stat| stat.is_file())
     }
 
-    fn server_script_path(&mut self, config: zed::LanguageServerConfig) -> Result<String> {
+    fn server_script_path(&mut self, language_server_id: &zed::LanguageServerId) -> Result<String> {
         let server_exists = self.server_exists();
         if self.did_find_server && server_exists {
             return Ok(SERVER_PATH.to_string());
         }
 
         zed::set_language_server_installation_status(
-            &config.name,
+            language_server_id,
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
         );
         let version = zed::npm_package_latest_version(PACKAGE_NAME)?;
@@ -29,7 +29,7 @@ impl DockerfileExtension {
             || zed::npm_package_installed_version(PACKAGE_NAME)?.as_ref() != Some(&version)
         {
             zed::set_language_server_installation_status(
-                &config.name,
+                language_server_id,
                 &zed::LanguageServerInstallationStatus::Downloading,
             );
             let result = zed::npm_install_package(PACKAGE_NAME, &version);
@@ -63,14 +63,15 @@ impl zed::Extension for DockerfileExtension {
 
     fn language_server_command(
         &mut self,
-        config: zed::LanguageServerConfig,
+        language_server_id: &zed_extension_api::LanguageServerId,
         _worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        let server_path = self.server_script_path(config)?;
+        let server_path = self.server_script_path(language_server_id)?;
         Ok(zed::Command {
             command: zed::node_binary_path()?,
             args: vec![
-                zed_ext::sanitize_windows_path(env::current_dir().unwrap())
+                env::current_dir()
+                    .unwrap()
                     .join(&server_path)
                     .to_string_lossy()
                     .to_string(),
@@ -82,24 +83,3 @@ impl zed::Extension for DockerfileExtension {
 }
 
 zed::register_extension!(DockerfileExtension);
-
-mod zed_ext {
-    /// Sanitizes the given path to remove the leading `/` on Windows.
-    ///
-    /// On macOS and Linux this is a no-op.
-    ///
-    /// This is a workaround for https://github.com/bytecodealliance/wasmtime/issues/10415.
-    pub fn sanitize_windows_path(path: std::path::PathBuf) -> std::path::PathBuf {
-        use zed_extension_api::{current_platform, Os};
-
-        let (os, _arch) = current_platform();
-        match os {
-            Os::Mac | Os::Linux => path,
-            Os::Windows => path
-                .to_string_lossy()
-                .to_string()
-                .trim_start_matches('/')
-                .into(),
-        }
-    }
-}
