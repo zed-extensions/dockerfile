@@ -13,3 +13,6 @@ language = "Dockerfile"
 [grammars.dockerfile]
 repository = "https://github.com/camdencheek/tree-sitter-dockerfile"
 commit = "868e44ce378deb68aac902a9db68ff82d2299dd0"
+
+[debug_adapters.buildx-dockerfile]
+schema_path = "./debug_adapter_schemas/buildx-dockerfile.json"
