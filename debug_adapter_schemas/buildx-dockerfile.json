@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "required": ["dockerfile", "contextPath"],
+  "properties": {
+    "dockerfile": {
+      "type": "string",
+      "description": "The absolute path to the Dockerfile to debug",
+      "default": "${ZED_WORKTREE_ROOT}/Dockerfile"
+    },
+    "contextPath": {
+      "type": "string",
+      "description": "Path to the context of the Docker build",
+      "default": "${ZED_WORKTREE_ROOT}"
+    },
+    "request": {
+      "type": "string",
+      "description": "The type of debug session to run, must be launch",
+      "enum": ["launch"],
+      "default": "launch"
+    },
+    "target": {
+      "type": "string",
+      "description": "The build stage target to build"
+    }
+  }
+}
