@@ -17,7 +17,7 @@ To support matching filenames other than `Dockerfile` you can add [`file_types`]
 
 ## Debugging
 
-The extension supports debugging Dockerfile builds with [Buildx](https://github.com/docker/buildx). To get Buildx, we recommend installing or updating [Docker Desktop](https://docs.docker.com/install/). You may alternatively install Buildx manually by following the instructions [here](https://github.com/docker/buildx?tab=readme-ov-file#manual-download).
+The extension supports debugging Dockerfile builds with [Buildx](https://github.com/docker/buildx). The minimal required version of Buildx is v0.28.0. To get Buildx, we recommend installing or updating [Docker Desktop](https://docs.docker.com/install/). You may alternatively install Buildx manually by following the instructions [here](https://github.com/docker/buildx?tab=readme-ov-file#manual-download).
 
 You can validate your Buildx installation by running `BUILDX_EXPERIMENTAL=1 docker buildx dap`.
 
