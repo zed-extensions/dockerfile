@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "required": ["dockerfile", "contextPath"],
+  "required": ["request"],
   "properties": {
     "dockerfile": {
       "type": "string",
