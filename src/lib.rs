@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::{env, fs};
 use zed_extension_api::{self as zed, Result};
 
@@ -17,10 +18,14 @@ struct DockerfileDebugConfig {
     // The absolute path to the Dockerfile being built
     dockerfile: Option<String>,
     // This should only ever be "launch" as "attach" is unsupported
-    request: Option<String>,
+    request: String,
     // args for the build, such as --build-arg ...
     #[serde(default)]
     args: Vec<String>,
+    // Should the debugger suspend immediately on the first line
+    stop_on_entry: Option<bool>,
+    // The build stage to build
+    target: Option<String>,
 }
 
 impl DockerfileExtension {
@@ -130,8 +135,10 @@ impl zed::Extension for DockerfileExtension {
                 let config = DockerfileDebugConfig {
                     dockerfile: Some(launch.program),
                     context_path: launch.cwd,
-                    request: Some("launch".to_string()),
+                    request: "launch".to_string(),
                     args: launch.args,
+                    stop_on_entry: zed_scenario.stop_on_entry,
+                    target: None,
                 };
 
                 let config = zed::serde_json::to_value(config)
@@ -167,9 +174,33 @@ impl zed::Extension for DockerfileExtension {
 
         let configuration: serde_json::Value = serde_json::from_str(&config.config)
             .map_err(|e| format!("`config` is not a valid JSON: {e}"))?;
-        let dockerfile_config: DockerfileDebugConfig =
+        let mut dockerfile_config: DockerfileDebugConfig =
             serde_json::from_value(configuration.clone())
                 .map_err(|e| format!("`config` is not a valid Dockerfile config: {e}"))?;
+
+        // Inject defaults if not set
+        let root_path_str = worktree.root_path();
+        if dockerfile_config.context_path.is_none() {
+            dockerfile_config.context_path = Some(root_path_str.clone());
+        }
+        if dockerfile_config.dockerfile.is_none() {
+            let root_path = Path::new(&root_path_str);
+            let dockerfile_path = root_path.join("Dockerfile");
+            let dockerfile_str = dockerfile_path
+                .to_str()
+                .ok_or_else(|| {
+                    format!(
+                        "Dockerfile path contains invalid UTF-8: {:?}",
+                        dockerfile_path
+                    )
+                })?
+                .to_owned();
+            dockerfile_config.dockerfile = Some(dockerfile_str);
+        }
+
+        let final_config = serde_json::to_string(&dockerfile_config)
+            .map_err(|e| format!("Failed to serialize config: {e}"))?;
+
         let mut arguments = vec!["buildx".to_string(), "dap".to_string(), "build".to_string()];
         arguments.extend(dockerfile_config.args);
 
@@ -180,7 +211,7 @@ impl zed::Extension for DockerfileExtension {
             envs: vec![(String::from("BUILDX_EXPERIMENTAL"), String::from("1"))],
             request_args: zed::StartDebuggingRequestArguments {
                 request: zed::StartDebuggingRequestArgumentsRequest::Launch,
-                configuration: config.config,
+                configuration: final_config,
             },
             connection: None,
         })
