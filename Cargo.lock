@@ -754,6 +754,7 @@ name = "zed_dockerfile"
 version = "0.0.6"
 dependencies = [
  "serde",
+ "serde_json",
  "zed_extension_api",
 ]
 

@@ -21,6 +21,18 @@
     "target": {
       "type": "string",
       "description": "The build stage target to build"
+    },
+    "stopOnEntry": {
+      "type": "boolean",
+      "description": "Whether the build should stop in the beginning"
+    },
+    "args": {
+      "type": "array",
+      "description": "Command line arguments to pass to the build command",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     }
   }
 }

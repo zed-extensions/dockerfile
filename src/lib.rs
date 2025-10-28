@@ -1,5 +1,5 @@
-use std::{env, fs};
 use serde::{Deserialize, Serialize};
+use std::{env, fs};
 use zed_extension_api::{self as zed, Result};
 
 const SERVER_PATH: &str = "node_modules/dockerfile-language-server-nodejs/bin/docker-langserver";
@@ -18,6 +18,9 @@ struct DockerfileDebugConfig {
     dockerfile: Option<String>,
     // This should only ever be "launch" as "attach" is unsupported
     request: Option<String>,
+    // args for the build, such as --build-arg ...
+    #[serde(default)]
+    args: Vec<String>,
 }
 
 impl DockerfileExtension {
@@ -128,6 +131,7 @@ impl zed::Extension for DockerfileExtension {
                     dockerfile: Some(launch.program),
                     context_path: launch.cwd,
                     request: Some("launch".to_string()),
+                    args: launch.args,
                 };
 
                 let config = zed::serde_json::to_value(config)
@@ -161,14 +165,22 @@ impl zed::Extension for DockerfileExtension {
             ));
         }
 
+        let configuration: serde_json::Value = serde_json::from_str(&config.config)
+            .map_err(|e| format!("`config` is not a valid JSON: {e}"))?;
+        let dockerfile_config: DockerfileDebugConfig =
+            serde_json::from_value(configuration.clone())
+                .map_err(|e| format!("`config` is not a valid Dockerfile config: {e}"))?;
+        let mut arguments = vec!["buildx".to_string(), "dap".to_string(), "build".to_string()];
+        arguments.extend(dockerfile_config.args);
+
         Ok(zed::DebugAdapterBinary {
             command: Some("docker".to_string()),
-            arguments: vec!["buildx".to_string(), "dap".to_string(), "build".to_string()],
+            arguments,
             cwd: Some(worktree.root_path()),
             envs: vec![(String::from("BUILDX_EXPERIMENTAL"), String::from("1"))],
             request_args: zed::StartDebuggingRequestArguments {
                 request: zed::StartDebuggingRequestArgumentsRequest::Launch,
-                configuration: config.config
+                configuration: config.config,
             },
             connection: None,
         })
