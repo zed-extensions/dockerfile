@@ -1,6 +1,7 @@
 use std::fs;
 
 use zed::LanguageServerId;
+use zed_extension_api::settings::LspSettings;
 use zed_extension_api::{self as zed, Result};
 
 use crate::language_servers::util;
@@ -23,11 +24,34 @@ impl DockerLanguageServer {
         language_server_id: &LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
+        let binary_settings = LspSettings::for_worktree(Self::LANGUAGE_SERVER_ID, worktree)
+            .ok()
+            .and_then(|lsp_settings| lsp_settings.binary);
+
+        let binary_args = binary_settings
+            .as_ref()
+            .and_then(|settings| settings.arguments.clone())
+            .unwrap_or_else(|| vec!["start".to_string(), "--stdio".to_string()]);
+
+        let env = binary_settings
+            .as_ref()
+            .and_then(|settings| settings.env.clone())
+            .map(|env| env.into_iter().collect())
+            .unwrap_or_default();
+
+        if let Some(path) = binary_settings.and_then(|settings| settings.path) {
+            return Ok(zed::Command {
+                command: path,
+                args: binary_args,
+                env,
+            });
+        }
+
         let binary_path = self.language_server_binary_path(language_server_id, worktree)?;
         Ok(zed::Command {
             command: binary_path,
-            args: vec!["start".to_string(), "--stdio".to_string()],
-            env: Default::default(),
+            args: binary_args,
+            env,
         })
     }
 
@@ -41,7 +65,7 @@ impl DockerLanguageServer {
         }
 
         if let Some(path) = &self.cached_binary_path {
-            if fs::metadata(path).is_ok_and(|stat| stat.is_file()) {
+            if fs::metadata(path).map_or(false, |stat| stat.is_file()) {
                 return Ok(path.clone());
             }
         }
@@ -92,7 +116,7 @@ impl DockerLanguageServer {
 
         let binary_path = format!("{version_dir}/docker-language-server{extension}");
 
-        if !fs::metadata(&binary_path).is_ok_and(|stat| stat.is_file()) {
+        if !fs::metadata(&binary_path).map_or(false, |stat| stat.is_file()) {
             zed::set_language_server_installation_status(
                 language_server_id,
                 &zed::LanguageServerInstallationStatus::Downloading,

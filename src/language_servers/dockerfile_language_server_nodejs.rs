@@ -1,5 +1,6 @@
 use std::{env, fs};
 
+use zed_extension_api::settings::LspSettings;
 use zed_extension_api::{self as zed, Result};
 
 const SERVER_PATH: &str = "node_modules/dockerfile-language-server-nodejs/bin/docker-langserver";
@@ -25,20 +26,51 @@ impl DockerfileLs {
     pub fn language_server_command(
         &mut self,
         language_server_id: &zed::LanguageServerId,
-        _worktree: &zed::Worktree,
+        worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
+        let binary_settings = LspSettings::for_worktree(Self::LANGUAGE_SERVER_ID, worktree)
+            .ok()
+            .and_then(|lsp_settings| lsp_settings.binary);
+
+        let env = binary_settings
+            .as_ref()
+            .and_then(|s| s.env.as_ref())
+            .map(|env| env.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .unwrap_or_default();
+
+        if let Some(path) = binary_settings.as_ref().and_then(|s| s.path.clone()) {
+            let args = binary_settings
+                .as_ref()
+                .and_then(|s| s.arguments.clone())
+                .unwrap_or_else(|| vec!["--stdio".to_string()]);
+
+            return Ok(zed::Command {
+                command: path,
+                args,
+                env,
+            });
+        }
+
         let server_path = self.server_script_path(language_server_id)?;
+
+        let default_args = vec![
+            env::current_dir()
+                .unwrap()
+                .join(&server_path)
+                .to_string_lossy()
+                .to_string(),
+            "--stdio".to_string(),
+        ];
+
+        let args = binary_settings
+            .as_ref()
+            .and_then(|s| s.arguments.clone())
+            .unwrap_or(default_args);
+
         Ok(zed::Command {
             command: zed::node_binary_path()?,
-            args: vec![
-                env::current_dir()
-                    .unwrap()
-                    .join(&server_path)
-                    .to_string_lossy()
-                    .to_string(),
-                "--stdio".to_string(),
-            ],
-            env: Default::default(),
+            args,
+            env,
         })
     }
 

@@ -2,7 +2,7 @@ mod language_servers;
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use zed_extension_api::{self as zed, Result};
+use zed_extension_api::{self as zed, settings::LspSettings, Result};
 
 use crate::language_servers::{DockerLanguageServer, DockerfileLs};
 
@@ -55,6 +55,24 @@ impl zed::Extension for DockerfileExtension {
             }
             language_server_id => Err(format!("unknown language server: {language_server_id}")),
         }
+    }
+
+    fn language_server_initialization_options(
+        &mut self,
+        language_server_id: &zed_extension_api::LanguageServerId,
+        worktree: &zed_extension_api::Worktree,
+    ) -> Result<Option<serde_json::Value>> {
+        LspSettings::for_worktree(language_server_id.as_ref(), worktree)
+            .map(|settings| settings.initialization_options)
+    }
+
+    fn language_server_workspace_configuration(
+        &mut self,
+        language_server_id: &zed_extension_api::LanguageServerId,
+        worktree: &zed_extension_api::Worktree,
+    ) -> Result<Option<serde_json::Value>> {
+        LspSettings::for_worktree(language_server_id.as_ref(), worktree)
+            .map(|settings| settings.settings)
     }
 
     fn dap_request_kind(
