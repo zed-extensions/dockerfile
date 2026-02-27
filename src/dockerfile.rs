@@ -1,14 +1,10 @@
+mod language_servers;
+
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use std::{env, fs};
-use zed_extension_api::{self as zed, Result};
+use zed_extension_api::{self as zed, settings::LspSettings, Result};
 
-const SERVER_PATH: &str = "node_modules/dockerfile-language-server-nodejs/bin/docker-langserver";
-const PACKAGE_NAME: &str = "dockerfile-language-server-nodejs";
-
-struct DockerfileExtension {
-    did_find_server: bool,
-}
+use crate::language_servers::{DockerLanguageServer, DockerfileLs};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,77 +24,55 @@ struct DockerfileDebugConfig {
     target: Option<String>,
 }
 
-impl DockerfileExtension {
-    fn server_exists(&self) -> bool {
-        fs::metadata(SERVER_PATH).map_or(false, |stat| stat.is_file())
-    }
-
-    fn server_script_path(&mut self, language_server_id: &zed::LanguageServerId) -> Result<String> {
-        let server_exists = self.server_exists();
-        if self.did_find_server && server_exists {
-            return Ok(SERVER_PATH.to_string());
-        }
-
-        zed::set_language_server_installation_status(
-            language_server_id,
-            &zed::LanguageServerInstallationStatus::CheckingForUpdate,
-        );
-        let version = zed::npm_package_latest_version(PACKAGE_NAME)?;
-
-        if !server_exists
-            || zed::npm_package_installed_version(PACKAGE_NAME)?.as_ref() != Some(&version)
-        {
-            zed::set_language_server_installation_status(
-                language_server_id,
-                &zed::LanguageServerInstallationStatus::Downloading,
-            );
-            let result = zed::npm_install_package(PACKAGE_NAME, &version);
-            match result {
-                Ok(()) => {
-                    if !self.server_exists() {
-                        Err(format!(
-                            "installed package '{PACKAGE_NAME}' did not contain expected path '{SERVER_PATH}'",
-                        ))?;
-                    }
-                }
-                Err(error) => {
-                    if !self.server_exists() {
-                        Err(error)?;
-                    }
-                }
-            }
-        }
-
-        self.did_find_server = true;
-        Ok(SERVER_PATH.to_string())
-    }
+struct DockerfileExtension {
+    dockerfile_ls: Option<DockerfileLs>,
+    docker_language_server: Option<DockerLanguageServer>,
 }
 
 impl zed::Extension for DockerfileExtension {
     fn new() -> Self {
         Self {
-            did_find_server: false,
+            dockerfile_ls: None,
+            docker_language_server: None,
         }
     }
 
     fn language_server_command(
         &mut self,
-        language_server_id: &zed_extension_api::LanguageServerId,
-        _worktree: &zed::Worktree,
+        language_server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        let server_path = self.server_script_path(language_server_id)?;
-        Ok(zed::Command {
-            command: zed::node_binary_path()?,
-            args: vec![
-                env::current_dir()
-                    .unwrap()
-                    .join(&server_path)
-                    .to_string_lossy()
-                    .to_string(),
-                "--stdio".to_string(),
-            ],
-            env: Default::default(),
-        })
+        match language_server_id.as_ref() {
+            DockerfileLs::LANGUAGE_SERVER_ID => {
+                let dockerfile_ls = self.dockerfile_ls.get_or_insert_with(DockerfileLs::new);
+                dockerfile_ls.language_server_command(language_server_id, worktree)
+            }
+            DockerLanguageServer::LANGUAGE_SERVER_ID => {
+                let docker_ls = self
+                    .docker_language_server
+                    .get_or_insert_with(DockerLanguageServer::new);
+                docker_ls.language_server_command(language_server_id, worktree)
+            }
+            language_server_id => Err(format!("unknown language server: {language_server_id}")),
+        }
+    }
+
+    fn language_server_initialization_options(
+        &mut self,
+        language_server_id: &zed_extension_api::LanguageServerId,
+        worktree: &zed_extension_api::Worktree,
+    ) -> Result<Option<serde_json::Value>> {
+        LspSettings::for_worktree(language_server_id.as_ref(), worktree)
+            .map(|settings| settings.initialization_options)
+    }
+
+    fn language_server_workspace_configuration(
+        &mut self,
+        language_server_id: &zed_extension_api::LanguageServerId,
+        worktree: &zed_extension_api::Worktree,
+    ) -> Result<Option<serde_json::Value>> {
+        LspSettings::for_worktree(language_server_id.as_ref(), worktree)
+            .map(|settings| settings.settings)
     }
 
     fn dap_request_kind(
@@ -154,7 +128,7 @@ impl zed::Extension for DockerfileExtension {
                 })
             }
             zed::DebugRequest::Attach(_) => {
-                return Err("attaching to a running build is not supported".to_string());
+                Err("attaching to a running build is not supported".to_string())
             }
         }
     }

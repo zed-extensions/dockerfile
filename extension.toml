@@ -10,6 +10,15 @@ repository = "https://github.com/zed-extensions/dockerfile"
 name = "Dockerfile Language Server"
 language = "Dockerfile"
 
+[language_servers.docker-language-server]
+name = "Docker Language Server"
+language = "Dockerfile"
+languages = ["Dockerfile", "Docker Compose"]
+
+[language_servers.docker-language-server.language_ids]
+"Dockerfile" = "dockerfile"
+"Docker Compose" = "docker-compose"
+
 [grammars.dockerfile]
 repository = "https://github.com/camdencheek/tree-sitter-dockerfile"
 commit = "868e44ce378deb68aac902a9db68ff82d2299dd0"

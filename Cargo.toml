@@ -6,6 +6,7 @@ publish = false
 
 [lib]
 crate-type = ["cdylib"]
+path = "src/dockerfile.rs"
 
 [dependencies]
 serde = {version = "1.0", features = ["derive"]}
