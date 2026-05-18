@@ -51,6 +51,19 @@ impl DockerfileLs {
             });
         }
 
+        if let Some(path) = worktree.which("docker-langserver") {
+            let args = binary_settings
+                .as_ref()
+                .and_then(|s| s.arguments.clone())
+                .unwrap_or_else(|| vec!["--stdio".to_string()]);
+
+            return Ok(zed::Command {
+                command: path,
+                args,
+                env,
+            });
+        }
+
         let server_path = self.server_script_path(language_server_id)?;
 
         let default_args = vec![
