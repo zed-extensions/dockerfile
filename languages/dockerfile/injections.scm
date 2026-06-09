@@ -1,5 +1,5 @@
 ((comment) @content
- (#set! injection.language "comment"))
+  (#set! injection.language "comment"))
 
 ((shell_command) @content
- (#set! "language" "bash"))
+  (#set! "language" "bash"))
