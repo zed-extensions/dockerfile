@@ -1,0 +1,27 @@
+# Adjusted from https://github.com/zed-industries/zed/blob/f2ab00cec7545ffb7d8d75e4ccab74d5fccccf9b/crates/languages/src/yaml/config.toml
+name = "Docker Compose"
+grammar = "yaml"
+path_suffixes = [
+    "docker-compose.yml",
+    "docker-compose.yaml",
+    "compose.yaml",
+    "compose.yml",
+]
+line_comments = ["# "]
+autoclose_before = ",]}"
+brackets = [
+    { start = "{", end = "}", close = true, newline = true },
+    { start = "[", end = "]", close = true, newline = true },
+    { start = "\"", end = "\"", close = true, newline = false, not_in = [
+        "string",
+    ] },
+    { start = "'", end = "'", close = true, newline = false, not_in = [
+        "string",
+    ] },
+]
+
+auto_indent_on_paste = false
+auto_indent_using_last_non_empty_line = false
+increase_indent_pattern = ":\\s*[|>]?\\s*$"
+prettier_parser_name = "yaml"
+tab_size = 2

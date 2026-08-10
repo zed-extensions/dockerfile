@@ -1,0 +1,22 @@
+[
+  {
+    "label": "docker-compose run",
+    "command": "docker-compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "docker compose run",
+    "command": "docker compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman-compose run",
+    "command": "podman-compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman compose run",
+    "command": "podman compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  }
+]
