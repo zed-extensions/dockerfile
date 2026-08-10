@@ -1,6 +1,6 @@
 id = "dockerfile"
 name = "Dockerfile"
-description = "Dockerfile support."
+description = "Dockerfile and Docker Compose support."
 version = "0.2.1"
 schema_version = 1
 authors = ["d1y <chenhonzho@gmail.com>", "joshmeads <github@joshmeads.com>"]
@@ -17,11 +17,17 @@ languages = ["Dockerfile", "Docker Compose"]
 
 [language_servers.docker-language-server.language_ids]
 "Dockerfile" = "dockerfile"
-"Docker Compose" = "docker-compose"
+"Docker Compose" = "dockercompose"
 
 [grammars.dockerfile]
 repository = "https://github.com/camdencheek/tree-sitter-dockerfile"
 commit = "868e44ce378deb68aac902a9db68ff82d2299dd0"
+
+# Registered as `yaml` rather than `docker-compose` so the id is snake_case and
+# matches the `tree_sitter_yaml` symbol the parser exports.
+[grammars.yaml]
+repository = "https://github.com/zed-industries/tree-sitter-yaml"
+commit = "baff0b51c64ef6a1fb1f8390f3ad6015b83ec13a"
 
 [debug_adapters.buildx-dockerfile]
 schema_path = "./debug_adapter_schemas/buildx-dockerfile.json"
