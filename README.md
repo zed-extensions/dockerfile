@@ -9,9 +9,10 @@ Compose files are given their own `Docker Compose` language, matched on
 `compose.yaml`, `compose.yml`, `docker-compose.yaml` and `docker-compose.yml`.
 Plain YAML files are unaffected.
 
-Each entry under `services:` gets a runnable, so a single service can be started
-from the gutter. `docker compose`, `docker-compose`, `podman compose` and
-`podman-compose` are all offered.
+Each entry under `services:` gets a runnable, so a single service can be run from
+the gutter via `compose run` — which starts a one-off container for that service
+rather than bringing the service up. `docker compose`, `docker-compose`,
+`podman compose` and `podman-compose` are all offered.
 
 ## Configuration
 

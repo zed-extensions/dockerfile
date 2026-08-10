@@ -1,4 +1,5 @@
-# Adjusted from https://github.com/zed-industries/zed/blob/f2ab00cec7545ffb7d8d75e4ccab74d5fccccf9b/crates/languages/src/yaml/config.toml
+# Adjusted from Zed's own YAML config, crates/grammars/src/yaml/config.toml,
+# since this language shares the grammar Zed uses for YAML.
 name = "Docker Compose"
 grammar = "yaml"
 path_suffixes = [
@@ -22,6 +23,8 @@ brackets = [
 
 auto_indent_on_paste = false
 auto_indent_using_last_non_empty_line = false
-increase_indent_pattern = ":\\s*[|>]?\\s*$"
+# 1st block matches basic elements followed by ':', e.g. 'test: '
+# 2nd block matches the first element of an array when it's an object
+increase_indent_pattern = "(:?^[^#]*:\\s*[|>]?\\s*$)|(:?^\\s*-[^#]*:\\s*(:?#+.*)$)"
 prettier_parser_name = "yaml"
 tab_size = 2
