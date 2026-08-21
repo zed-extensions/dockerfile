@@ -1,0 +1,62 @@
+[
+  {
+    "label": "docker-compose up",
+    "command": "docker-compose -f $ZED_FILE up $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "docker-compose run",
+    "command": "docker-compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "docker-compose down",
+    "command": "docker-compose -f $ZED_FILE down $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "docker compose up",
+    "command": "docker compose -f $ZED_FILE up $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "docker compose run",
+    "command": "docker compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "docker compose down",
+    "command": "docker compose -f $ZED_FILE down $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman-compose up",
+    "command": "podman-compose -f $ZED_FILE up $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman-compose run",
+    "command": "podman-compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman-compose down",
+    "command": "podman-compose -f $ZED_FILE down $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman compose up",
+    "command": "podman compose -f $ZED_FILE up $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman compose run",
+    "command": "podman compose -f $ZED_FILE run $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  },
+  {
+    "label": "podman compose down",
+    "command": "podman compose -f $ZED_FILE down $ZED_CUSTOM_service",
+    "tags": ["docker-compose-service"]
+  }
+]

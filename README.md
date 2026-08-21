@@ -1,7 +1,25 @@
 # Dockerfile Zed Extension
 
-- Tree Sitter: [tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile)
-- Language Server: [dockerfile-language-server](https://github.com/rcjsuen/dockerfile-language-server)
+- Tree Sitter: [tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile), [tree-sitter-yaml](https://github.com/zed-industries/tree-sitter-yaml)
+- Language Server: [dockerfile-language-server](https://github.com/rcjsuen/dockerfile-language-server), [docker-language-server](https://github.com/docker/docker-language-server)
+
+## Docker Compose
+
+Compose files are given their own `Docker Compose` language, matched on
+`compose.yaml`, `compose.yml`, `docker-compose.yaml` and `docker-compose.yml`.
+Plain YAML files are unaffected.
+
+Each entry under `services:` gets runnables, so a single service can be brought
+up, run and taken down from the gutter:
+
+| Task | Effect |
+| --- | --- |
+| `up` | starts the service and its dependencies, attached so logs appear in the terminal |
+| `run` | starts a one-off container for the service |
+| `down` | stops and removes the service's containers |
+
+Each is offered for `docker compose`, `docker-compose`, `podman compose` and
+`podman-compose`.
 
 ## Configuration
 
