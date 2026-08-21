@@ -1,6 +1,7 @@
 ; Taken from https://github.com/zed-industries/zed/blob/f2ab00cec7545ffb7d8d75e4ccab74d5fccccf9b/crates/languages/src/yaml/highlights.scm
 ; as the "Docker Compose" language shares the grammar zed uses for YAML
 (boolean_scalar) @boolean
+
 (null_scalar) @constant.builtin
 
 [
@@ -25,7 +26,9 @@
   (tag)
 ] @type
 
-key: (flow_node (plain_scalar (string_scalar) @property))
+key: (flow_node
+  (plain_scalar
+    (string_scalar) @property))
 
 [
   ","
