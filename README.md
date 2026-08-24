@@ -23,12 +23,14 @@ Each is offered for `docker compose`, `docker-compose`, `podman compose` and
 
 ## Configuration
 
-To support matching filenames other than `Dockerfile` you can add [`file_types`](https://zed.dev/docs/configuring-zed#file-types) to your Zed project or user settings:
+By default, this extension associates `Dockerfile`, `dockerfile`, and `Containerfile` with Dockerfile syntax.
+
+To match *additional* custom patterns (such as `Dockerfile.dev` or `Dockerfile.prod`), add the [`file_types`](https://zed.dev/docs/configuring-zed#file-types) setting to your user or project `settings.json`:
 
 ```json
 {
   "file_types": {
-    "Dockerfile": ["Dockerfile.*"]
+    "Dockerfile": ["Dockerfile.*", "Containerfile.*"],
   }
 }
 ```
